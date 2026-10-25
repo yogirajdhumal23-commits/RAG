@@ -1,0 +1,189 @@
+import streamlit as st
+import pandas as pd
+import json
+
+# ==========================================
+# PAGE CONFIGURATION
+# ==========================================
+st.set_page_config(
+    page_title="Citizen Scheme Navigator",
+    page_icon="🏛️",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+# Custom Styling for Streamlit
+st.markdown("""
+<style>
+    .main-header {
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: #1E293B;
+        margin-bottom: 0.2rem;
+    }
+    .sub-header {
+        font-size: 1.05rem;
+        color: #64748B;
+        margin-bottom: 1.5rem;
+    }
+    .scheme-card {
+        background-color: #FFFFFF;
+        border: 1px solid #E2E8F0;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+    .match-badge-high {
+        background-color: #DCFCE7;
+        color: #15803D;
+        font-weight: 600;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 0.85rem;
+    }
+    .match-badge-med {
+        background-color: #FEF9C3;
+        color: #A16207;
+        font-weight: 600;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 0.85rem;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+
+# ==========================================
+# SCHEME DATABASE
+# ==========================================
+@st.cache_data
+def load_scheme_database():
+    return [
+        {
+            "id": "SISFS",
+            "name": "Startup India Seed Fund Scheme (SISFS)",
+            "category_type": "Entrepreneurship & Innovation",
+            "min_age": 18,
+            "max_age": 60,
+            "min_edu": "12th Pass",
+            "max_income_lakhs": 999.0, # No cap
+            "gender_eligibility": ["All", "Male", "Female", "Other"],
+            "target_occupations": ["Entrepreneur", "Student", "Unemployed"],
+            "benefit_amount": "Up to ₹20 Lakhs (Grant) / ₹50 Lakhs (Debt/Convertible Debentures)",
+            "simple_summary": {
+                "English": "Provides financial assistance to early-stage startups for proof of concept, prototype development, product trials, market-entry, and commercialization.",
+                "Hindi": "यह योजना नए स्टार्ट-अप के लिए शुरुआती वित्तीय सहायता (₹20 लाख तक का अनुदान) प्रदान करती है ताकि वे विचार, प्रोटोटाइप और परीक्षण पूरा कर सकें।",
+                "Marathi": "नवउद्योजकांना संकल्पना सिद्धता, प्रोटोटाईप विकास आणि व्यवसाय सुरू करण्यासाठी ₹२० लाखांपर्यंतचे अनुदान व निधी पुरवला जातो.",
+                "Tamil": "ஆரம்ப கட்ட ஸ்டார்ட்-அப்களுக்கு கருத்து அத்தாட்சி மற்றும் தயாரிப்பு உருவாக்கத்திற்கு ₹20 லட்சம் வரை நிதி உதவி வழங்கப்படுகிறது.",
+                "Telugu": "ప్రారంభ దశలోని స్టార్టప్‌లకు ఐడియా అభివృద్ధి, నమూనాల తయారీ కోసం ₹20 లక్షల వరకు ఆర్థిక సహాయం లభిస్తుంది.",
+                "Bengali": "প্রারম্ভিক পর্যায়ের স্টার্টআপগুলির জন্য প্রোটোটাইপ তৈরি এবং ব্যবসা শুরু করতে ₹২০ লক্ষ পর্যন্ত আর্থিক সহায়তা প্রদান করা হয়।",
+                "Gujarati": "શરૂઆતના તબક્કાના સ્ટાર્ટઅપ્સને પ્રોટોટાઇપ બનાવવા અને વ્યવસાય શરૂ કરવા માટે ₹20 લાખ સુધીની નાણાકીય સહાય.",
+                "Kannada": "ಆರಂಭಿಕ ಹಂತದ ಸ್ಟಾರ್ಟ್‌ಅಪ್‌ಗಳಿಗೆ ಪ್ರೊಟೊಟೈಪ್ ಅಭಿವೃದ್ಧಿಪಡಿಸಲು ಮತ್ತು ಉದ್ಯಮ ಪ್ರಾರಂಭಿಸಲು ₹20 ಲಕ್ಷದವರೆಗೆ ಆರ್ಥಿಕ ನೆರವು."
+            },
+            "documents": [
+                "DPIIT Recognition Certificate",
+                "Business Plan & Pitch Deck",
+                "Incorporation Certificate / GST Registration",
+                "Aadhaar Card of Founder(s)",
+                "Bank Account Details of Company"
+            ],
+            "official_url": "https://seedfund.startupindia.gov.in/"
+        },
+        {
+            "id": "PMKVY",
+            "name": "Pradhan Mantri Kaushal Vikas Yojana (PMKVY 4.0)",
+            "category_type": "Skill Development & Employment",
+            "min_age": 15,
+            "max_age": 45,
+            "min_edu": "Below 10th",
+            "max_income_lakhs": 999.0,
+            "gender_eligibility": ["All", "Male", "Female", "Other"],
+            "target_occupations": ["Student", "Unemployed", "Worker/Laborer"],
+            "benefit_amount": "Free Industry Skills Training + Government Certification + ₹8,000 Stipend",
+            "simple_summary": {
+                "English": "Offers free industry-relevant skill training to youth to increase employability, along with assessment, certification, and job placement assistance.",
+                "Hindi": "युवाओं को नि:शुल्क कौशल प्रशिक्षण, सरकारी प्रमाणपत्र और नौकरी पाने में सहायता प्रदान की जाती है।",
+                "Marathi": "तरुणांना मोफत कौशल्य प्रशिक्षण, प्रमाणपत्र आणि रोजगार मिळवून देण्यासाठी मदत दिली जाते.",
+                "Tamil": "இளைஞர்களுக்கு இலவச தொழிற்பயிற்சி, சான்றிதழ் மற்றும் வேலைவாய்ப்பு உதவிகள் வழங்கப்படுகின்றன.",
+                "Telugu": "యువతకు ఉచిత నైపుణ్య శిక్షణ, ప్రభుత్వ ధృవీకరణ పత్రం మరియు ఉద్యోగ అవకాశాలు కల్పించబడతాయి.",
+                "Bengali": "যুবকদের বিনামূল্যে দক্ষতা প্রশিক্ষণ, প্রশংসাপত্র এবং কর্মসংস্থানের সুযোগ তৈরি করে দেওয়া হয়।",
+                "Gujarati": "યુવાનોને મફત કૌશલ્ય તાલીમ, સરકારી પ્રમાણપત્ર અને રોજગાર મેળવવામાં મદદ કરવામાં આવે છે.",
+                "Kannada": "ಯುವಕರಿಗೆ ಉಚಿತ ಕೌಶಲ್ಯ ತರಬೇತಿ, ಪ್ರಮಾಣಪತ್ರ ಮತ್ತು ಉದ್ಯೋಗಾವಕಾಶ ನೀಡಲಾಗುತ್ತದೆ."
+            },
+            "documents": [
+                "Aadhaar Card",
+                "Voter ID / Bank Passbook",
+                "Educational Qualification Marksheet (if any)",
+                "Passport Size Photographs"
+            ],
+            "official_url": "https://www.pmkvyofficial.org/"
+        },
+        {
+            "id": "NSP_POST_MATRIC",
+            "name": "National Scholarship Portal (Post-Matric Scholarship)",
+            "category_type": "Education & Student Financial Support",
+            "min_age": 14,
+            "max_age": 30,
+            "min_edu": "10th Pass",
+            "max_income_lakhs": 2.5,
+            "gender_eligibility": ["All", "Male", "Female", "Other"],
+            "target_occupations": ["Student"],
+            "benefit_amount": "Up to ₹20,000/year allowance + Course Fee Reimbursement",
+            "simple_summary": {
+                "English": "Financial scholarship support for students studying in Class 11, Class 12, ITI, Diploma, Graduation, and Post-Graduation degrees.",
+                "Hindi": "11वीं, 12वीं, आईटीआई, डिप्लोमा और कॉलेज छात्रों के लिए शिक्षण शुल्क और रखरखाव भत्ता की छात्रवृत्ति।",
+                "Marathi": "इयत्ता ११ वी, १२ वी, आयटीआय, पदविका आणि पदवीचे शिक्षण घेणाऱ्या विद्यार्थ्यांसाठी शिष्यवृत्ती.",
+                "Tamil": "11, 12 ஆம் வகுப்பு மற்றும் கல்லூரி மாணவர்களுக்கு கல்வி உதவித்தொகை மற்றும் கட்டணத் திருப்பிச் செலுத்துதல்.",
+                "Telugu": "11, 12వ తరగతి మరియు కళాశాల విద్యార్థులకు బోధనా రుసుము మరియు స్కాలర్‌షిప్ సహాయం.",
+                "Bengali": "একাদশ, দ্বাদশ এবং উচ্চশিক্ষার ছাত্র-ছাত্রীদের জন্য স্কলারশিপ ও পড়াশোনার খরচ রিইমবার্সমেন্ট।",
+                "Gujarati": "ધોરણ 11, 12 અને કોલેજના વિદ્યાર્થીઓ માટે શિષ્યવૃત્તિ અને ફી સબસીડી.",
+                "Kannada": "11, 12 ನೇ ತರಗತಿ ಮತ್ತು ಉನ್ನತ ಶಿಕ್ಷಣ ಪಡೆಯುತ್ತಿರುವ ವಿದ್ಯಾರ್ಥಿಗಳಿಗೆ ಸ್ಕಾಲರ್‌ಶಿಪ್ ನೆರವು."
+            },
+            "documents": [
+                "Aadhaar Card",
+                "Family Income Certificate (Issued by Tehsildar/Competent Authority)",
+                "Caste Certificate (if applicable)",
+                "Class 10th Marksheet / Previous Passed Exam Marksheet",
+                "Fee Receipt of Current Course",
+                "Bank Account Passbook (Aadhaar linked)"
+            ],
+            "official_url": "https://scholarships.gov.in/"
+        },
+        {
+            "id": "PMEGP",
+            "name": "Prime Minister Employment Generation Programme (PMEGP)",
+            "category_type": "Self-Employment & Business Loans",
+            "min_age": 18,
+            "max_age": 65,
+            "min_edu": "8th Pass",
+            "max_income_lakhs": 999.0,
+            "gender_eligibility": ["All", "Male", "Female", "Other"],
+            "target_occupations": ["Entrepreneur", "Unemployed", "Farmer", "Artisan"],
+            "benefit_amount": "Subsidized Business Bank Loan up to ₹50 Lakhs (Manufacturing) / ₹20 Lakhs (Service) with 15%-35% Subsidy",
+            "simple_summary": {
+                "English": "Credit-linked subsidy scheme to set up micro-enterprises in non-farm sectors, providing subsidies up to 35% on project cost.",
+                "Hindi": "नया उद्योग या सेवा व्यवसाय शुरू करने के लिए ₹50 लाख तक का बैंक ऋण और 15% से 35% तक की सरकारी सब्सिडी।",
+                "Marathi": "नवीन सूक्ष्म उद्योग किंवा व्यवसाय सुरू करण्यासाठी ₹५० लाखांपर्यंतचे बँक कर्ज व ३५% पर्यंत सरकारी अनुदान (सबसिडी).",
+                "Tamil": "புதிய தொழில் தொடங்க ₹50 லட்சம் வரை வங்கி கடன் மற்றும் 35% வரை அரசு மானியம் வழங்கப்படுகிறது.",
+                "Telugu": "కొత్త వ్యాపారం ప్రారంభించడానికి ₹50 లక్షల వరకు బ్యాంకు రుణం మరియు 35% ప్రభుత్వ సబ్సిడీ.",
+                "Bengali": "নতুন ক্ষুদ্র শিল্প স্থাপনের জন্য ₹৫০ লক্ষ পর্যন্ত ব্যাঙ্ক ঋণ এবং ৩৫% পর্যন্ত সরকারি ভর্তুকি।",
+                "Gujarati": "નવો વ્યવસાય શરૂ કરવા માટે ₹50 લાખ સુધીની બેંક લોન અને 35% સુધીની સબસીડી.",
+                "Kannada": "ಹೊಸ ಉದ್ಯಮ ಪ್ರಾರಂಭಿಸಲು ₹50 ಲಕ್ಷದವರೆಗೆ ಬ್ಯಾಂಕ್ ಸಾಲ ಮತ್ತು 35% ವರೆಗೆ ಸರ್ಕಾರಿ ಸಬ್ಸಿಡಿ."
+            },
+            "documents": [
+                "Aadhaar Card & PAN Card",
+                "Detailed Project Report (DPR)",
+                "Highest Educational Qualification Certificate",
+                "Caste / Special Category Certificate (if claiming extra subsidy)",
+                "EDP Training Certificate (if completed)"
+            ],
+            "official_url": "https://www.kviconline.gov.in/pmegpeportal/"
+        },
+        {
+            "id": "PMAY_U",
+            "name": "Pradhan Mantri Awas Yojana (PMAY - Urban / Gramin)",
+            "category_type": "Housing & Urban Development",
+            "min_age": 18,
+            "max_age": 70,
+            "min_edu": "Below 10th",
