@@ -1,0 +1,1432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Citizen Scheme Navigator | Jan Seva Portal</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        stRed: {
+                            DEFAULT: '#FF4B4B',
+                            light: '#FFEBEB',
+                            dark: '#D93838',
+                            hover: '#E03E3E'
+                        },
+                        stDark: '#0E1117',
+                        stCard: '#1E232E',
+                        stSidebar: '#F0F2F6',
+                        stGray: '#262730'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FFFFFF;
+            color: #31333F;
+        }
+        
+        /* Custom Scrollbar for Streamlit feel */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af;
+        }
+
+        /* Streamlit Badge Styling */
+        .st-badge {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 2px 10px;
+            border-radius: 9999px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .st-badge-eligible {
+            background-color: #D1FAE5;
+            color: #065F46;
+            border: 1px solid #A7F3D0;
+        }
+        .st-badge-partial {
+            background-color: #FEF3C7;
+            color: #92400E;
+            border: 1px solid #FDE68A;
+        }
+        .st-badge-ineligible {
+            background-color: #FEE2E2;
+            color: #991B1B;
+            border: 1px solid #FCA5A5;
+        }
+
+        /* Streamlit UI Card */
+        .st-card {
+            background-color: #FFFFFF;
+            border: 1px solid #E6E8EB;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+            transition: all 0.2s ease-in-out;
+        }
+        .st-card:hover {
+            border-color: #D0D5DD;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Print styling rules */
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            .print-only {
+                display: block !important;
+            }
+            body {
+                background: white;
+                color: black;
+            }
+            .st-card {
+                border: 1px solid #ccc;
+                box-shadow: none;
+                break-inside: avoid;
+            }
+        }
+        .print-only {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased selection:bg-red-100 selection:text-stRed">
+
+    <!-- TOP NAV HEADER -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-40 no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-9 h-9 bg-stRed rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-sm">
+                    <i class="fa-solid fa-flag"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold text-slate-900 leading-tight">Jan Seva Navigator</h1>
+                    <p class="text-xs text-slate-500 font-medium">Citizen Scheme Eligibility & Language Portal</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-3">
+                <div class="hidden sm:flex items-center bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 mr-2 animate-pulse"></span>
+                    Live Guidelines Index 2026
+                </div>
+                <button onclick="openWizardModal()" class="bg-stRed hover:bg-stRed-hover text-white text-xs font-semibold px-3 py-2 rounded-md shadow-sm transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Scheme Finder Wizard
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN WRAPPER: SIDEBAR + CONTENT -->
+    <div class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col md:flex-row gap-6">
+
+        <!-- SIDEBAR: USER PROFILE FORM (STREAMLIT STYLE) -->
+        <aside class="w-full md:w-80 shrink-0 no-print">
+            <div class="bg-stSidebar border border-slate-200 rounded-xl p-5 sticky top-20 shadow-sm space-y-5">
+                <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+                    <h2 class="font-bold text-slate-900 text-base flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-stRed"></i> Citizen Demographic Profile
+                    </h2>
+                    <button onclick="resetProfileForm()" class="text-xs text-stRed hover:underline font-medium">Reset</button>
+                </div>
+
+                <!-- Age Slider -->
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="text-xs font-semibold text-slate-700">Age (Years)</label>
+                        <span id="ageVal" class="text-xs font-mono font-bold bg-white px-2 py-0.5 border border-slate-200 rounded text-stRed">25</span>
+                    </div>
+                    <input type="range" id="ageInput" min="0" max="90" value="25" class="w-full accent-stRed cursor-pointer h-1.5 bg-slate-300 rounded-lg" oninput="updateProfile()">
+                </div>
+
+                <!-- Annual Income Input -->
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="text-xs font-semibold text-slate-700">Annual Family Income</label>
+                        <span id="incomeVal" class="text-xs font-mono font-bold bg-white px-2 py-0.5 border border-slate-200 rounded text-stRed">₹2.50 Lakhs</span>
+                    </div>
+                    <input type="range" id="incomeInput" min="0" max="15" step="0.25" value="2.5" class="w-full accent-stRed cursor-pointer h-1.5 bg-slate-300 rounded-lg" oninput="updateProfile()">
+                    <div class="flex justify-between text-[10px] text-slate-400 mt-1">
+                        <span>₹0</span>
+                        <span>₹5L</span>
+                        <span>₹10L</span>
+                        <span>₹15L+</span>
+                    </div>
+                </div>
+
+                <!-- Education Level -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Highest Education Level</label>
+                    <select id="eduInput" onchange="updateProfile()" class="w-full text-xs bg-white border border-slate-300 rounded-md p-2 focus:ring-1 focus:ring-stRed focus:border-stRed font-medium text-slate-800">
+                        <option value="No formal education">No formal education</option>
+                        <option value="Below 10th">Below 10th Pass</option>
+                        <option value="10th Pass">10th Pass</option>
+                        <option value="12th Pass">12th Pass</option>
+                        <option value="Diploma">Diploma / Vocational / ITI</option>
+                        <option value="Graduate" selected>Graduate (B.A / B.Sc / B.Tech / B.Com)</option>
+                        <option value="Post-Graduate">Post-Graduate (M.A / M.Sc / M.Tech / MBA)</option>
+                        <option value="PhD">PhD / Doctorate</option>
+                    </select>
+                </div>
+
+                <!-- Gender & Category Grid -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Gender</label>
+                        <select id="genderInput" onchange="updateProfile()" class="w-full text-xs bg-white border border-slate-300 rounded-md p-2 focus:ring-1 focus:ring-stRed focus:border-stRed font-medium text-slate-800">
+                            <option value="All">All / Any</option>
+                            <option value="Female">Female</option>
+                            <option value="Male">Male</option>
+                            <option value="Transgender">Transgender</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Social Category</label>
+                        <select id="categoryInput" onchange="updateProfile()" class="w-full text-xs bg-white border border-slate-300 rounded-md p-2 focus:ring-1 focus:ring-stRed focus:border-stRed font-medium text-slate-800">
+                            <option value="General">General</option>
+                            <option value="OBC">OBC</option>
+                            <option value="SC">SC</option>
+                            <option value="ST">ST</option>
+                            <option value="EWS">EWS</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Special Conditions Checkboxes -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-2">Special Status / Occupation</label>
+                    <div class="space-y-1.5 text-xs font-medium text-slate-700 bg-white p-3 border border-slate-200 rounded-md">
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="checkbox" id="condFarmer" onchange="updateProfile()" class="rounded text-stRed focus:ring-stRed">
+                            <span>Farmer / Agriculturalist</span>
+                        </label>
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="checkbox" id="condArtisan" onchange="updateProfile()" class="rounded text-stRed focus:ring-stRed">
+                            <span>Artisan / Traditional Craftsperson</span>
+                        </label>
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="checkbox" id="condPWD" onchange="updateProfile()" class="rounded text-stRed focus:ring-stRed">
+                            <span>Person with Disability (PwD)</span>
+                        </label>
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="checkbox" id="condSingleGirl" onchange="updateProfile()" class="rounded text-stRed focus:ring-stRed">
+                            <span>Single Girl Child / Girl Student</span>
+                        </label>
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="checkbox" id="condEntrepreneur" onchange="updateProfile()" class="rounded text-stRed focus:ring-stRed">
+                            <span>Entrepreneur / Aspiring Founder</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Global Language Translator Selector -->
+                <div class="pt-2 border-t border-slate-200">
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">
+                        <i class="fa-solid fa-language text-stRed mr-1"></i> Regional Language Summary
+                    </label>
+                    <select id="languageSelect" onchange="renderSchemes()" class="w-full text-xs bg-white border border-slate-300 rounded-md p-2 font-semibold text-stRed focus:ring-1 focus:ring-stRed">
+                        <option value="en">English (Original)</option>
+                        <option value="hi">Hindi (हिंदी)</option>
+                        <option value="mr">Marathi (मराठी)</option>
+                        <option value="ta">Tamil (தமிழ்)</option>
+                        <option value="bn">Bengali (বাংলা)</option>
+                        <option value="te">Telugu (తెలుగు)</option>
+                        <option value="gu">Gujarati (ગુજરાતી)</option>
+                        <option value="kn">Kannada (கன்னட/ಕನ್ನಡ)</option>
+                    </select>
+                </div>
+            </div>
+        </aside>
+
+        <!-- CENTER CONTENT: DASHBOARD, SEARCH, TABS & SCHEMES -->
+        <main class="flex-1 space-y-6 min-w-0">
+
+            <!-- STREAMLIT METRICS DASHBOARD -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 no-print">
+                <div class="st-card p-4 border-l-4 border-l-slate-800">
+                    <p class="text-xs font-semibold text-slate-500">TOTAL INDEXED</p>
+                    <h3 id="metricTotal" class="text-2xl font-bold text-slate-900 mt-1">10</h3>
+                    <p class="text-[11px] text-slate-400 mt-1">Verified Govt Schemes</p>
+                </div>
+                <div class="st-card p-4 border-l-4 border-l-emerald-500">
+                    <p class="text-xs font-semibold text-emerald-700">FULLY ELIGIBLE</p>
+                    <h3 id="metricEligible" class="text-2xl font-bold text-emerald-600 mt-1">0</h3>
+                    <p class="text-[11px] text-slate-400 mt-1">Match score &ge; 80%</p>
+                </div>
+                <div class="st-card p-4 border-l-4 border-l-amber-500">
+                    <p class="text-xs font-semibold text-amber-700">POTENTIAL MATCHES</p>
+                    <h3 id="metricPartial" class="text-2xl font-bold text-amber-600 mt-1">0</h3>
+                    <p class="text-[11px] text-slate-400 mt-1">Match score 50% - 79%</p>
+                </div>
+                <div class="st-card p-4 border-l-4 border-l-stRed">
+                    <p class="text-xs font-semibold text-stRed">DOCUMENTS NEEDED</p>
+                    <h3 id="metricDocs" class="text-2xl font-bold text-slate-900 mt-1">0</h3>
+                    <p class="text-[11px] text-slate-400 mt-1">Across matched schemes</p>
+                </div>
+            </div>
+
+            <!-- SEARCH, SECTOR & MATCH FILTER BAR -->
+            <div class="st-card p-4 space-y-3 no-print">
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <div class="relative flex-1">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-sm"></i>
+                        <input type="text" id="searchInput" oninput="renderSchemes()" placeholder="Search scheme by name, benefit, keyword (e.g., loan, grant, scholarship, farmer)..." class="w-full pl-9 pr-4 py-2 text-xs border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-stRed focus:border-stRed">
+                    </div>
+                    <div class="w-full sm:w-48">
+                        <select id="sectorFilter" onchange="renderSchemes()" class="w-full text-xs border border-slate-300 rounded-md py-2 px-3 focus:ring-1 focus:ring-stRed focus:border-stRed">
+                            <option value="All">All Categories</option>
+                            <option value="Grants & Entrepreneurship">Grants & Entrepreneurship</option>
+                            <option value="Skill Development">Skill Development</option>
+                            <option value="Education & Scholarships">Education & Scholarships</option>
+                            <option value="Healthcare">Healthcare</option>
+                            <option value="Farmers & Agriculture">Farmers & Agriculture</option>
+                            <option value="Women & Child Welfare">Women & Child Welfare</option>
+                            <option value="Housing">Housing</option>
+                            <option value="Social Security">Social Security</option>
+                        </select>
+                    </div>
+                    <div class="w-full sm:w-44">
+                        <select id="matchFilter" onchange="renderSchemes()" class="w-full text-xs border border-slate-300 rounded-md py-2 px-3 focus:ring-1 focus:ring-stRed focus:border-stRed">
+                            <option value="All">All Match Levels</option>
+                            <option value="Eligible">Eligible Only (80%+)</option>
+                            <option value="Partial">Potential Matches (50%+)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MAIN VIEW NAVIGATION TABS -->
+            <div class="border-b border-slate-200 no-print">
+                <nav class="flex space-x-6 text-xs font-semibold" aria-label="Tabs">
+                    <button id="tabBtnSchemes" onclick="switchTab('schemes')" class="border-b-2 border-stRed text-stRed pb-3 px-1 flex items-center gap-2">
+                        <i class="fa-solid fa-list-check"></i> Scheme Catalog & Results
+                    </button>
+                    <button id="tabBtnCompare" onclick="switchTab('compare')" class="border-b-2 border-transparent text-slate-500 hover:text-slate-700 pb-3 px-1 flex items-center gap-2">
+                        <i class="fa-solid fa-code-compare"></i> Side-by-Side Comparison (<span id="compareCount">0</span>)
+                    </button>
+                    <button id="tabBtnChecklist" onclick="switchTab('checklist')" class="border-b-2 border-transparent text-slate-500 hover:text-slate-700 pb-3 px-1 flex items-center gap-2">
+                        <i class="fa-solid fa-folder-open"></i> Document Master Checklist
+                    </button>
+                    <button id="tabBtnReport" onclick="switchTab('report')" class="border-b-2 border-transparent text-slate-500 hover:text-slate-700 pb-3 px-1 flex items-center gap-2">
+                        <i class="fa-solid fa-print"></i> Printable Summary Report
+                    </button>
+                </nav>
+            </div>
+
+            <!-- SECTION 1: SCHEME CARDS CATALOG -->
+            <div id="tabContentSchemes" class="space-y-4">
+                <div id="schemesContainer" class="space-y-4">
+                    <!-- Dynamic Scheme Cards Rendered via JS -->
+                </div>
+            </div>
+
+            <!-- SECTION 2: SIDE-BY-SIDE COMPARISON MATRIX -->
+            <div id="tabContentCompare" class="hidden space-y-4">
+                <div class="st-card p-5">
+                    <div class="flex justify-between items-center mb-4">
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-900">Scheme Comparison Matrix</h3>
+                            <p class="text-xs text-slate-500">Compare parameters of up to 3 selected schemes side-by-side.</p>
+                        </div>
+                        <button onclick="clearComparison()" class="text-xs text-stRed hover:underline font-semibold">Clear Comparison List</button>
+                    </div>
+                    
+                    <div id="compareMatrixContainer" class="overflow-x-auto">
+                        <!-- Rendered Matrix -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 3: MASTER DOCUMENT CHECKLIST -->
+            <div id="tabContentChecklist" class="hidden space-y-4">
+                <div class="st-card p-5">
+                    <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3 mb-4 pb-3 border-b border-slate-200">
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-900">Mandatory Application Document Aggregator</h3>
+                            <p class="text-xs text-slate-500">Consolidated list of official documents required for your eligible schemes.</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="copyDocumentChecklist()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold px-3 py-1.5 rounded border border-slate-300 flex items-center gap-1">
+                                <i class="fa-regular fa-copy"></i> Copy List
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="checklistContainer" class="space-y-3">
+                        <!-- Dynamic Checklist -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 4: PRINTABLE SUMMARY REPORT -->
+            <div id="tabContentReport" class="hidden space-y-4">
+                <div class="st-card p-6 bg-white" id="printableReportArea">
+                    <div class="flex justify-between items-start border-b-2 border-slate-900 pb-4 mb-6">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-stRed text-2xl"><i class="fa-solid fa-flag"></i></span>
+                                <h2 class="text-xl font-extrabold text-slate-900 uppercase tracking-tight">JAN SEVA SCHEME ELIGIBILITY REPORT</h2>
+                            </div>
+                            <p class="text-xs text-slate-600 mt-1">Official Citizen Assessment & Mandatory Document Checklist</p>
+                        </div>
+                        <div class="text-right text-xs">
+                            <p class="font-bold text-slate-900">Generated Date: <span id="reportDate" class="font-mono">--</span></p>
+                            <p class="text-slate-500">Status: Verified Official Guidelines</p>
+                        </div>
+                    </div>
+
+                    <!-- User Snapshot -->
+                    <div class="bg-slate-50 p-4 rounded-lg border border-slate-200 mb-6">
+                        <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-2">Citizen Profile Snapshot</h4>
+                        <div id="reportProfileSummary" class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                            <!-- JS Injected -->
+                        </div>
+                    </div>
+
+                    <!-- Matched Schemes Summary Table -->
+                    <div class="mb-6">
+                        <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-2">Eligible Welfare Schemes</h4>
+                        <div id="reportSchemesTable" class="overflow-x-auto">
+                            <!-- JS Injected -->
+                        </div>
+                    </div>
+
+                    <!-- Consolidated Documents Needed -->
+                    <div class="mb-6">
+                        <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-2">Consolidated Mandatory Document Checklist</h4>
+                        <div id="reportDocsList" class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                            <!-- JS Injected -->
+                        </div>
+                    </div>
+
+                    <!-- Print Footer -->
+                    <div class="pt-4 border-t border-slate-200 text-[10px] text-slate-500 flex justify-between">
+                        <span>Jan Seva Citizen Scheme Navigator • Government Guidelines Index</span>
+                        <span>Page 1 of 1</span>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-3 no-print">
+                    <button onclick="window.print()" class="bg-stRed hover:bg-stRed-hover text-white text-xs font-bold px-4 py-2 rounded shadow flex items-center gap-1.5">
+                        <i class="fa-solid fa-print"></i> Print / Save as PDF
+                    </button>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- MODAL: SCHEME FINDER WIZARD -->
+    <div id="wizardModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-xl max-w-lg w-full p-6 space-y-5 border border-slate-200 relative">
+            <button onclick="closeWizardModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-lg">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            
+            <div class="border-b border-slate-100 pb-3">
+                <span class="text-[10px] font-bold tracking-wider text-stRed uppercase">Interactive Assistant</span>
+                <h3 class="text-base font-bold text-slate-900" id="wizardTitle">Step 1: Primary Goal</h3>
+            </div>
+
+            <!-- Wizard Step Containers -->
+            <div id="wizardStep1" class="space-y-3">
+                <p class="text-xs text-slate-600 font-medium">What is your primary requirement today?</p>
+                <div class="grid grid-cols-1 gap-2">
+                    <button onclick="wizardSelectGoal('Entrepreneurship')" class="p-3 border border-slate-200 hover:border-stRed hover:bg-red-50 rounded-lg text-left text-xs font-semibold text-slate-800 flex items-center gap-3 transition">
+                        <i class="fa-solid fa-rocket text-stRed text-base"></i> Starting or expanding a business / Startup grant
+                    </button>
+                    <button onclick="wizardSelectGoal('Education')" class="p-3 border border-slate-200 hover:border-stRed hover:bg-red-50 rounded-lg text-left text-xs font-semibold text-slate-800 flex items-center gap-3 transition">
+                        <i class="fa-solid fa-graduation-cap text-stRed text-base"></i> Higher Education Scholarship or Skill Training
+                    </button>
+                    <button onclick="wizardSelectGoal('Agriculture')" class="p-3 border border-slate-200 hover:border-stRed hover:bg-red-50 rounded-lg text-left text-xs font-semibold text-slate-800 flex items-center gap-3 transition">
+                        <i class="fa-solid fa-wheat-awn text-stRed text-base"></i> Farming income support or agricultural tools
+                    </button>
+                    <button onclick="wizardSelectGoal('Social')" class="p-3 border border-slate-200 hover:border-stRed hover:bg-red-50 rounded-lg text-left text-xs font-semibold text-slate-800 flex items-center gap-3 transition">
+                        <i class="fa-solid fa-house-medical text-stRed text-base"></i> Healthcare, Housing, or Pension Security
+                    </button>
+                </div>
+            </div>
+
+            <div id="wizardStep2" class="hidden space-y-4">
+                <p class="text-xs text-slate-600 font-medium">Quickly specify your annual household income:</p>
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                    <button onclick="wizardSelectIncome(2.5)" class="p-3 border border-slate-200 hover:border-stRed hover:bg-red-50 rounded-lg text-center font-semibold text-slate-800">Below ₹2.5 Lakhs</button>
+                    <button onclick="wizardSelectIncome(5.0)" class="p-3 border border-slate-200 hover:border-stRed hover:bg-red-50 rounded-lg text-center font-semibold text-slate-800">₹2.5L - ₹5.0 Lakhs</button>
+                    <button onclick="wizardSelectIncome(8.0)" class="p-3 border border-slate-200 hover:border-stRed hover:bg-red-50 rounded-lg text-center font-semibold text-slate-800">₹5.0L - ₹8.0 Lakhs</button>
+                    <button onclick="wizardSelectIncome(15.0)" class="p-3 border border-slate-200 hover:border-stRed hover:bg-red-50 rounded-lg text-center font-semibold text-slate-800">Above ₹8.0 Lakhs</button>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center pt-2">
+                <span id="wizardStepIndicator" class="text-[11px] text-slate-400 font-medium">Step 1 of 2</span>
+                <button onclick="closeWizardModal()" class="text-xs text-slate-500 hover:underline">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // ==========================================
+        // DATASET: COMPREHENSIVE SCHEMES KNOWLEDGE BASE
+        // ==========================================
+        const SCHEMES_DATABASE = [
+            {
+                id: "SCH001",
+                name: "Startup India Seed Fund Scheme (SISFS)",
+                category: "Grants & Entrepreneurship",
+                min_age: 18,
+                max_age: 65,
+                education: ["12th Pass", "Diploma", "Graduate", "Post-Graduate", "PhD"],
+                max_income_lakhs: 999,
+                gender: ["All", "Male", "Female", "Transgender"],
+                categories: ["General", "OBC", "SC", "ST", "EWS"],
+                special_conditions: ["Entrepreneur"],
+                overview: "Provides financial assistance to early-stage startups for proof of concept, prototype development, product trials, market-entry, and commercialization through approved incubators.",
+                benefits: {
+                    en: "Grant up to ₹20 Lakhs for validation/prototype + up to ₹50 Lakhs debt/convertible debentures for commercialization.",
+                    hi: "प्रमाणीकरण/प्रोटोटाइप के लिए ₹20 लाख तक का अनुदान + व्यवसायीकरण के लिए ₹50 लाख तक का ऋण सहायता।",
+                    mr: "प्रोटोटाइप विकासासाठी ₹२० लाखांपर्यंत अनुदान + व्यवसायासाठी ₹५० लाखांपर्यंत कर्ज सहाय्य.",
+                    ta: "முன்மாதிரி உருவாக்க ரூ. 20 லட்சம் வரை மானியம் + வர்த்தகமயமாக்கலுக்கு ரூ. 50 லட்சம் வரை கடன் உதவி.",
+                    bn: "প্রোটোটাইপ তৈরির জন্য ২০ লাখ টাকা পর্যন্ত অনুদান এবং বাণিজ্যিকীকরণের জন্য ৫০ লাখ টাকা ঋণ সাহায্য।",
+                    te: "ప్రోటోటైప్ అభివృద్ధికి ₹20 లక్షల వరకు గ్రాంట్ + వ్యాపారానికి ₹50 లక్షల వరకు రుణం.",
+                    gu: "પ્રોટોટાઇપ વિકાસ માટે ₹20 લાખ સુધીની గ్రాન્ટ + વ્યાપારીકરણ માટે ₹50 લાખ સુધીની લોન સહાય.",
+                    kn: "ಪ್ರೋಟೋಟೈಪ್ ಅಭಿವೃದ್ಧಿಗೆ ₹20 ಲಕ್ಷದವರೆಗೆ ಅನುದಾನ + ವಾಣಿಜ್ಯೀಕರಣಕ್ಕಾಗಿ ₹50 ಲಕ್ಷದವರೆಗೆ ಸಾಲ ಸೌಲಭ್ಯ."
+                },
+                documents: [
+                    "Aadhaar Card of Founders",
+                    "DPIIT Recognition Certificate",
+                    "Company Incorporation / Partnership Certificate",
+                    "Business Pitch Deck & Financial Forecast",
+                    "Bank Account Details (Current Account)",
+                    "GST Registration Certificate"
+                ],
+                portal: "https://seedfund.startupindia.gov.in/",
+                authority: "DPIIT, Ministry of Commerce and Industry",
+                steps: [
+                    "Register your startup on the Startup India Hub portal to get DPIIT recognition.",
+                    "Apply for Seed Fund online by selecting preference of incubators.",
+                    "Present pitch deck to the Incubator Seed Management Committee (ISMC)."
+                ]
+            },
+            {
+                id: "SCH002",
+                name: "PMKVY 4.0 (Pradhan Mantri Kaushal Vikas Yojana)",
+                category: "Skill Development",
+                min_age: 15,
+                max_age: 45,
+                education: ["No formal education", "Below 10th", "10th Pass", "12th Pass", "Diploma", "Graduate"],
+                max_income_lakhs: 8.0,
+                gender: ["All", "Male", "Female", "Transgender"],
+                categories: ["General", "OBC", "SC", "ST", "EWS"],
+                special_conditions: [],
+                overview: "Skill certification initiative enabling Indian youth to take up industry-aligned skill training (Industry 4.0, AI, Drone tech, Coding, Crafting) for better livelihoods.",
+                benefits: {
+                    en: "100% Free Industry Skill Training + National Skill Qualification Framework (NSQF) Certificate + Direct Cash Stipend of ₹8,000 + Placement Assistance.",
+                    hi: "100% मुफ्त कौशल प्रशिक्षण + राष्ट्रीय प्रमाण पत्र + ₹8,000 का सीधा वजीफा + नौकरी में सहायता।",
+                    mr: "१००% मोफत कौशल्य प्रशिक्षण + राष्ट्रीय प्रमाणपत्र + ₹८,००० पर्यंत थेट विद्यावेतन + रोजगार सहाय्य.",
+                    ta: "100% இலவச திறன் பயிற்சி + தேசிய சான்றிதழ் + ரூ. 8,000 வரை நேரடி உதவித்தொகை.",
+                    bn: "১০০% বিনামূল্যে দক্ষতা প্রশিক্ষণ + সরকারি প্রশংসাপত্র + ₹৮,০০০ উপবৃত্তি + চাকরির সহায়তা।",
+                    te: "100% ఉచిత నైపుణ్య శిక్షణ + ప్రభుత్వ సర్టిఫికెట్ + ₹8,000 వరకు స్టైపెండ్ + ఉద్యోగ సాయం.",
+                    gu: "100% મફત કૌશલ્ય તાલીમ + સરકારી પ્રમાણપત્ર + ₹8,000 સુધીનું સ્ટાઇપેન્ડ + નોકરી સહાય.",
+                    kn: "100% ಉಚಿತ ಕೌಶಲ್ಯ ತರಬೇತಿ + ಸರ್ಕಾರಿ ಪ್ರಮಾಣಪತ್ರ + ₹8,000 ರವರೆಗೆ ಸ್ಟೈಪೆಂಡ್ + ಉದ್ಯೋಗ ನೆರವು."
+                },
+                documents: [
+                    "Aadhaar Card",
+                    "Bank Account Details (Aadhaar Seeded)",
+                    "Educational Certificate / Mark sheet",
+                    "Passport Size Photographs"
+                ],
+                portal: "https://www.pmkvyofficial.org/",
+                authority: "Ministry of Skill Development and Entrepreneurship",
+                steps: [
+                    "Find nearest PMKVY Training Centre on the Skill India Digital Portal.",
+                    "Select preferred job role / domain (e.g. AI Data entry, Solar Technician, IT).",
+                    "Complete training, pass assessment to receive certification and stipend."
+                ]
+            },
+            {
+                id: "SCH003",
+                name: "NSP Post-Matric & Merit Scholarship for Higher Education",
+                category: "Education & Scholarships",
+                min_age: 14,
+                max_age: 30,
+                education: ["10th Pass", "12th Pass", "Diploma", "Graduate", "Post-Graduate", "PhD"],
+                max_income_lakhs: 2.5,
+                gender: ["All", "Male", "Female", "Transgender"],
+                categories: ["OBC", "SC", "ST", "EWS"],
+                special_conditions: [],
+                overview: "Provides financial aid to students belonging to underprivileged & minority communities pursuing post-secondary/higher studies to reduce dropout rates.",
+                benefits: {
+                    en: "100% Academic Tuition Fee Reimbursement + Annual Maintenance Allowance up to ₹13,500/year for hostellers and ₹7,000 for day scholars.",
+                    hi: "100% ट्यूशन फीस की वापसी + हॉस्टलर के लिए ₹13,500/वर्ष और डे स्कॉलर के लिए ₹7,000/वर्ष का रखरखाव भत्ता।",
+                    mr: "पूर्ण शिक्षण शुल्क परतावा + वसतिगृहातील विद्यार्थ्यांसाठी ₹१३,५००/वर्ष भत्ता.",
+                    ta: "முழு படிப்புக் கட்டணத் திரும்பப்பெறுதல் + ஆண்டிற்கு ₹13,500 வரை பராமரிப்பு படி.",
+                    bn: "সম্পূর্ণ টিউশন ফি ফেরত + হোস্টেলের শিক্ষার্থীদের জন্য বছরে ১৩,৫০০ টাকা পর্যন্ত ভাতা।",
+                    te: "పూర్తి కోర్సు ఫీజు రీయింబర్స్మెంట్ + హాస్టలర్లకు ఏడాదికి ₹13,500 వరకు అలవెన్స్.",
+                    gu: "ટ્યુશન ફીનું સંપૂર્ણ રિઇમ્બર્સમેન્ટ + હોસ્ટેલર માટે વાર્ષિક ₹13,500 સુધીનું ભથ્થું.",
+                    kn: "ಪೂರ್ಣ ಶೈಕ್ಷಣಿಕ ಶುಲ್ಕ ಮರುಪಾವತಿ + ವಸತಿನಿಲಯದ ವಿದ್ಯಾರ್ಥಿಗಳಿಗೆ ₹13,500/ವರ್ಷ ಸಹಾಯಧನ."
+                },
+                documents: [
+                    "Aadhaar Card",
+                    "Current Year Income Certificate (Authorized Officer)",
+                    "Caste / Category Certificate",
+                    "Mark Sheet of Previous Qualifying Exam",
+                    "College Fee Receipt & Bonafide Certificate",
+                    "Student Bank Account Passbook"
+                ],
+                portal: "https://scholarships.gov.in/",
+                authority: "Ministry of Social Justice & Empowerment",
+                steps: [
+                    "Register on National Scholarship Portal (NSP) with Aadhaar.",
+                    "Upload income, caste, and institution bonafide certificates.",
+                    "Application is verified by Institute Nodal Officer (INO) and state authority."
+                ]
+            },
+            {
+                id: "SCH004",
+                name: "PM-KISAN (Pradhan Mantri Kisan Samman Nidhi)",
+                category: "Farmers & Agriculture",
+                min_age: 18,
+                max_age: 95,
+                education: ["No formal education", "Below 10th", "10th Pass", "12th Pass", "Diploma", "Graduate", "Post-Graduate", "PhD"],
+                max_income_lakhs: 6.0,
+                gender: ["All", "Male", "Female", "Transgender"],
+                categories: ["General", "OBC", "SC", "ST", "EWS"],
+                special_conditions: ["Farmer"],
+                overview: "Central income support transfer scheme for all landholding farmer families across India to supplement financial needs for agricultural inputs.",
+                benefits: {
+                    en: "Direct Cash Benefit of ₹6,000 per year transferred directly to bank accounts in 3 equal installments of ₹2,000.",
+                    hi: "₹6,000 प्रति वर्ष का प्रत्यक्ष नकद लाभ, ₹2,000 की 3 समान किस्तों में बैंक खाते में हस्तांतरित।",
+                    mr: "दरवर्षी ₹६,००० थेट बँक खात्यात (₹२,००० च्या ३ समान हप्त्यांमध्ये) जमा.",
+                    ta: "ஆண்டுக்கு ₹6,000 நேரடியாக வங்கி கணக்கில் (3 தவணைகளாக தலா ₹2,000) செலுத்தப்படும்.",
+                    bn: "প্রতি বছর ৬,০০০ টাকা ৩টি সমান কিস্তিতে (২,০০০ টাকা করে) সরাসরি ব্যাংক অ্যাকাউন্টে জমা।",
+                    te: "సంవత్సరానికి ₹6,000 రైతు ఖాతాలో 3 సమాన విడతల్లో (₹2,000 చొప్పున) నేరుగా జమ.",
+                    gu: "દર વર્ષે ₹6,000 નું સીધું રોકડ ટ્રાન્સફર (₹2,000 ના 3 સમાન હપ્તામાં).",
+                    kn: "ವರ್ಷಕ್ಕೆ ₹6,000 ನೇರ ನಗದು ಸೌಲಭ್ಯ (₹2,000 ರ 3 ಕಂತುಗಳಲ್ಲಿ direct transfer)."
+                },
+                documents: [
+                    "Aadhaar Card (Mandatory)",
+                    "Landholding Ownership Papers (RoR / Khatauni / Khasra)",
+                    "Bank Account Details (Aadhaar Seeded)",
+                    "Active Mobile Number"
+                ],
+                portal: "https://pmkisan.gov.in/",
+                authority: "Ministry of Agriculture and Farmers Welfare",
+                steps: [
+                    "Self-register on PM-KISAN portal under 'Farmers Corner'.",
+                    "Enter land ownership details and Aadhaar number.",
+                    "Complete mandatory e-KYC via facial recognition or OTP."
+                ]
+            },
+            {
+                id: "SCH005",
+                name: "Ayushman Bharat - PM-JAY (Health Insurance)",
+                category: "Healthcare",
+                min_age: 0,
+                max_age: 100,
+                education: ["No formal education", "Below 10th", "10th Pass", "12th Pass", "Diploma", "Graduate", "Post-Graduate", "PhD"],
+                max_income_lakhs: 5.0,
+                gender: ["All", "Male", "Female", "Transgender"],
+                categories: ["General", "OBC", "SC", "ST", "EWS"],
+                special_conditions: [],
+                overview: "Flagship national health insurance scheme providing health coverage to low-income and vulnerable families for secondary and tertiary care hospitalization.",
+                benefits: {
+                    en: "100% Cashless health cover up to ₹5 Lakhs per family per year across 27,000+ empanelled government and private hospitals.",
+                    hi: "प्रति परिवार प्रति वर्ष ₹5 लाख तक का 100% कैशलेस स्वास्थ्य बीमा (27,000+ अस्पतालों में)।",
+                    mr: "प्रत्येक कुटुंबासाठी दरवर्षी ₹५ लाखांपर्यंत मोफत आणि कॅशलेस आरोग्य विमा.",
+                    ta: "ஆண்டுக்கு குடும்பத்திற்கு ₹5 லட்சம் வரை கட்டணமில்லா மருத்துவ சிகிச்சை காப்பீடு.",
+                    bn: "প্রতি পরিবারে প্রতি বছর ৫ লাখ টাকা পর্যন্ত সম্পূর্ণ বিনামূল্যে ক্যাশলেস স্বাস্থ্য পরিষেবা।",
+                    te: "సంవత్సరానికి కుటుంబానికి ₹5 లక్షల వరకు నగదు రహిత ఆసుపత్రి వైద్య బీమా.",
+                    gu: "પ્રતિ પરિવાર વાર્ષિક ₹5 લાખ સુધીનું મફત અને કેશલેસ હેલ્થ ઇન્સ્યોરન્સ કવર.",
+                    kn: "ಪ್ರತಿ ಕುಟುಂಬಕ್ಕೆ ವರ್ಷಕ್ಕೆ ₹5 ಲಕ್ಷದವರೆಗೆ ಸಂಪೂರ್ಣ ಉಚಿತ ವೈದ್ಯಕೀಯ ಚಿಕಿತ್ಸಾ ವಿಮೆ."
+                },
+                documents: [
+                    "Aadhaar Card / Ration Card",
+                    "Ayushman Bharat Card / SECC Household Verification",
+                    "Active Mobile Number"
+                ],
+                portal: "https://pmjay.gov.in/",
+                authority: "National Health Authority (NHA)",
+                steps: [
+                    "Check eligibility on beneficiary.nha.gov.in using Mobile/Aadhaar/Ration card.",
+                    "Visit nearest Empanelled Hospital or CSC center for e-KYC.",
+                    "Download your Ayushman Card instantly."
+                ]
+            },
+            {
+                id: "SCH006",
+                name: "PM Vishwakarma Scheme",
+                category: "Grants & Entrepreneurship",
+                min_age: 18,
+                max_age: 75,
+                education: ["No formal education", "Below 10th", "10th Pass", "12th Pass", "Diploma", "Graduate"],
+                max_income_lakhs: 6.0,
+                gender: ["All", "Male", "Female", "Transgender"],
+                categories: ["General", "OBC", "SC", "ST", "EWS"],
+                special_conditions: ["Artisan"],
+                overview: "End-to-end holistic assistance for traditional artisans and craftspeople across 18 traditional trades (Blacksmith, Carpenter, Potter, Weaver, Sculptor, etc.).",
+                benefits: {
+                    en: "PM Vishwakarma Digital Certificate + ₹15,000 Toolkit Incentive Grant + Collateral-Free Subsidized Loan up to ₹3 Lakhs at 5% interest rate.",
+                    hi: "विश्वकर्मा डिजिटल प्रमाणपत्र + ₹15,000 टूलकिट अनुदान + 5% रियायती ब्याज दर पर ₹3 लाख तक का बिना गारंटी ऋण।",
+                    mr: "विश्वकर्मा प्रमाणपत्र + ₹१५,००० टूलकिट अनुदान + ५% व्याजाने ₹३ लाखांपर्यंत सवलतीचे विनातारण कर्ज.",
+                    ta: "விஸ்வகர்மா சான்றிதழ் + ரூ. 15,000 கருவித்தொகுப்பு மானியம் + 5% வட்டி விகிதத்தில் ரூ. 3 லட்சம் வரை கடன்.",
+                    bn: "ডিজিটাল সার্টিফিকেট + ১৫,০০০ টাকা টুলকিট অনুদান + ৫% সুদে ৩ লাখ টাকা পর্যন্ত ঋণ।",
+                    te: "విశ్వకర్మ గుర్తింపు కార్డు + ₹15,000 టూల్‌కిట్ గ్రాంట్ + 5% వడ్డీకే ₹3 లక్షల వరకు రుణం.",
+                    gu: "ડિજિટલ પ્રમાણપત્ર + ₹15,000 ટૂલકિટ ગ્રાન્ટ + 5% વ્યાજે ₹3 લાખ સુધીની સબસિડી વાળી લોન.",
+                    kn: "ವಿಶ್ವಕರ್ಮ ಡಿಜಿಟಲ್ ಪ್ರಮಾಣಪತ್ರ + ₹15,000 ಟೂಲ್‌ಕಿಟ್ ಅನುದಾನ + 5% ಬಡ್ಡಿದರದಲ್ಲಿ ₹3 ಲಕ್ಷದವರೆಗೆ ಸಾಲ."
+                },
+                documents: [
+                    "Aadhaar Card",
+                    "Bank Account Details (Aadhaar linked)",
+                    "Ration Card",
+                    "Mobile Number linked with Aadhaar",
+                    "Trade Verification by Gram Panchayat / Urban Local Body"
+                ],
+                portal: "https://pmvishwakarma.gov.in/",
+                authority: "Ministry of Micro, Small and Medium Enterprises (MSME)",
+                steps: [
+                    "Visit Common Service Centre (CSC) for biometric registration.",
+                    "Gram Panchayat / ULB verifies your traditional craft profession.",
+                    "Receive 5-day basic skill training + ₹15,000 toolkit voucher."
+                ]
+            },
+            {
+                id: "SCH007",
+                name: "Sukanya Samriddhi Yojana (SSY)",
+                category: "Women & Child Welfare",
+                min_age: 0,
+                max_age: 10,
+                education: ["No formal education", "Below 10th"],
+                max_income_lakhs: 999,
+                gender: ["Female"],
+                categories: ["General", "OBC", "SC", "ST", "EWS"],
+                special_conditions: ["Single Girl"],
+                overview: "Government savings scheme designed specifically for parents of girl children to build an emergency fund for higher education and marriage expenses.",
+                benefits: {
+                    en: "Highest guaranteed government interest rate (~8.2% p.a.) + 100% Tax exemption under 80C + Completely Tax-Free maturity sum at age 21.",
+                    hi: "उत्कृष्ट सरकारी ब्याज दर (~8.2%) + धारा 80C के तहत 100% कर छूट + 21 वर्ष की आयु में कर-मुक्त परिपक्वता राशि।",
+                    mr: "उच्च सरकारी व्याजदर (८.२%) + ८०C खाली पूर्ण कर सवलत + मुलगी २१ वर्षांची झाल्यावर करमुक्त रक्कम.",
+                    ta: "அதிக அரசு வட்டி விகிதம் (8.2%) + பிரிவு 80C வரி விலக்கு + 21 வயதில் வரி இல்லாத முதிர்வு தொகை.",
+                    bn: "উচ্চ সরকারি সুদের হার (৮.২%) + ৮০সি ধারায় কর ছাড় + ২১ বছর বয়সে সম্পূর্ণ করমুক্ত টাকা।",
+                    te: "అధిక ప్రభుత్వ వడ్డీ రేటు (8.2%) + పన్ను మినహాయింపు + కుమార్తెకి 21 ఏళ్లు నిండిన తర్వాత మెచ్యూరిటీ మొత్తం.",
+                    gu: "ઊંચો સરકારી વ્યાજ દર (~8.2%) + 80C હેઠળ ટેક્સ મુક્તિ + 21 વર્ષે સંપૂર્ણ ટેક્સ-ફ્રી મેચ્યોરિટી રકમ.",
+                    kn: "ಅತ್ಯಧಿಕ ಸರ್ಕಾರಿ ಬಡ್ಡಿದರ (~8.2%) + 80C ವಿಭಾಗದಡಿ ತೆರಿಗೆ ವಿನಾಯಿತಿ + 21 ನೇ ವಯಸ್ಸಿನಲ್ಲಿ ಉಚಿತ ಪರಿಪಕ್ವತೆ ಮೊತ್ತ."
+                },
+                documents: [
+                    "Girl Child Birth Certificate",
+                    "Parent / Guardian Aadhaar Card & PAN Card",
+                    "Address Proof (Electricity bill / Passport)",
+                    "Passport Size Photographs"
+                ],
+                portal: "https://www.indiapost.gov.in/",
+                authority: "Department of Posts & Ministry of Finance",
+                steps: [
+                    "Visit nearest Post Office or authorized Public/Private Bank branch.",
+                    "Fill SSY Account Opening Form and submit Birth Certificate.",
+                    "Deposit initial amount (Minimum ₹250 per year)."
+                ]
+            },
+            {
+                id: "SCH008",
+                name: "Pradhan Mantri Awas Yojana (PMAY Urban / Gramin)",
+                category: "Housing",
+                min_age: 18,
+                max_age: 70,
+                education: ["No formal education", "Below 10th", "10th Pass", "12th Pass", "Diploma", "Graduate", "Post-Graduate", "PhD"],
+                max_income_lakhs: 6.0,
+                gender: ["All", "Male", "Female", "Transgender"],
+                categories: ["General", "OBC", "SC", "ST", "EWS"],
+                special_conditions: [],
+                overview: "Housing mission ensuring pucca houses with electricity, LPG, and tap water connections for homeless & low-income families.",
+                benefits: {
+                    en: "Direct financial grant of ₹1.20 Lakhs to ₹2.67 Lakhs as interest subsidy or housing construction grant.",
+                    hi: "पक्का मकान बनाने के लिए सब्सिडी और प्रत्यक्ष अनुदान के रूप में ₹1.20 लाख से ₹2.67 लाख की सहायता।",
+                    mr: "पक्के घर बांधण्यासाठी ₹१.२० लाख ते ₹२.६७ लाखांपर्यंत थेट अनुदान व व्याज सवलत.",
+                    ta: "வீடு கட்ட ₹1.20 லட்சம் முதல் ₹2.67 லட்சம் வரை அரசு நிதி உதவி மற்றும் வட்டி மானியம்.",
+                    bn: "পাকা বাড়ি তৈরির জন্য ১.২০ লাখ থেকে ২.৬৭ লাখ টাকা পর্যন্ত সরাসরি অনুদান বা সুদে ছাড়।",
+                    te: "సొంత ఇల్లు నిర్మించుకోవడానికి ₹1.20 లక్షల నుండి ₹2.67 లక్షల వరకు ఆర్థిక సాయం / వడ్డీ సబ్సిడీ.",
+                    gu: "પાકું ઘર બનાવવા માટે ₹1.20 લાખથી ₹2.67 લાખ સુધીની વ્યાજ સબસિડી અથવા ગ્રાન્ટ.",
+                    kn: "ಪಕ್ಕಾ ಮನೆ ನಿರ್ಮಾಣಕ್ಕೆ ₹1.20 ಲಕ್ಷದಿಂದ ₹2.67 ಲಕ್ಷದವರೆಗೆ ನೇರ ಧನಸಹಾಯ ಮತ್ತು ಬಡ್ಡಿ ಸಬ್ಸಿಡಿ."
+                },
+                documents: [
+                    "Aadhaar Card of all family members",
+                    "Income Certificate / BPL Card",
+                    "Land Ownership Record / Gram Panchayat Clearance",
+                    "Affidavit stating family does not own a pucca house in India",
+                    "Bank Account Details"
+                ],
+                portal: "https://pmaymis.gov.in/",
+                authority: "Ministry of Housing and Urban Affairs / MoRD",
+                steps: [
+                    "Apply through PMAY MIS Portal or Gram Panchayat Survey.",
+                    "Physical verification of location and current living conditions.",
+                    "Financial assistance is released in installments directly to bank account."
+                ]
+            },
+            {
+                id: "SCH009",
+                name: "National Social Assistance Programme (NSAP Old Age Pension)",
+                category: "Social Security",
+                min_age: 60,
+                max_age: 100,
+                education: ["No formal education", "Below 10th", "10th Pass", "12th Pass", "Diploma", "Graduate", "Post-Graduate", "PhD"],
+                max_income_lakhs: 1.5,
+                gender: ["All", "Male", "Female", "Transgender"],
+                categories: ["General", "OBC", "SC", "ST", "EWS"],
+                special_conditions: [],
+                overview: "Social security pension for senior citizens belonging to Below Poverty Line (BPL) households to ensure basic dignified living.",
+                benefits: {
+                    en: "Guaranteed monthly cash pension (₹1,000 to ₹3,000/month combined with state contribution) directly transferred to bank accounts.",
+                    hi: "गारंटीकृत मासिक नकद पेंशन (राज्य योगदान के साथ ₹1,000 से ₹3,000/माह) सीधे बैंक खाते में।",
+                    mr: "दरमहा खात्रीशीर नकद पेन्शन (राज्य सरकारच्या सहकार्याने ₹१,००० ते ₹३,०००/महिना).",
+                    ta: "மாதாந்திர உத்தரவாதமளிக்கப்பட்ட ஓய்வூதியம் (ரூ. 1,000 முதல் ரூ. 3,000 வரை) வங்கி கணக்கில்.",
+                    bn: "সরাসরি ব্যাংকে মাসিক ১,০০০ থেকে ৩,০০০ টাকা পর্যন্ত গ্যারান্টিযুক্ত বৃদ্ধ ভাতা।",
+                    te: "నెలనెలా గ్యారెంటీ పింఛను (రాష్ట్ర వాటాతో కలిపి నెలకు ₹1,000 నుండి ₹3,000 వరకు).",
+                    gu: "દર મહિને ખાતરીપૂર્વકનું પેન્શન (રાજ્યના ફાળાઓ સહિત ₹1,000 થી ₹3,000/મહિનો).",
+                    kn: "ಪ್ರತಿ ತಿಂಗಳು ಖಾತರಿಯ ಮಾಸಿಕ ಪಿಂಚಣಿ (₹1,000 ರಿಂದ ₹3,000/ತಿಂಗಳಿಗೆ) ನೇರ ನಗದು ವರ್ಗಾವಣೆ."
+                },
+                documents: [
+                    "Aadhaar Card",
+                    "BPL Ration Card / Income Certificate",
+                    "Age Proof Certificate",
+                    "Bank Passbook (Single Account)"
+                ],
+                portal: "https://nsap.nic.in/",
+                authority: "Ministry of Rural Development",
+                steps: [
+                    "Submit application form at Block Development Office (BDO) or CSC.",
+                    "Verification by Social Welfare Inspector.",
+                    "Pension credited on 1st of every month."
+                ]
+            },
+            {
+                id: "SCH010",
+                name: "Stand-Up India Scheme for Women & SC/ST Entrepreneurs",
+                category: "Grants & Entrepreneurship",
+                min_age: 18,
+                max_age: 65,
+                education: ["10th Pass", "12th Pass", "Diploma", "Graduate", "Post-Graduate", "PhD"],
+                max_income_lakhs: 999,
+                gender: ["Female", "Transgender", "Male"],
+                categories: ["SC", "ST"],
+                special_conditions: ["Entrepreneur"],
+                overview: "Promotes entrepreneurship among SC/ST and Women founders by facilitating bank loans for setting up greenfield enterprises.",
+                benefits: {
+                    en: "Bank loans between ₹10 Lakhs and ₹1 Crore for setting up new manufacturing, services, or trading business units.",
+                    hi: "निर्माण, सेवा या व्यापार व्यवसाय स्थापित करने के लिए ₹10 लाख से ₹1 करोड़ तक का बैंक ऋण।",
+                    mr: "नवीन उद्योग उभारण्यासाठी ₹१० लाख ते ₹१ कोटींपर्यंतचे बँक कर्ज.",
+                    ta: "புதிய தொழில் தொடங்க ரூ. 10 லட்சம் முதல் ரூ. 1 கோடி வரை வங்கி கடன் உதவி.",
+                    bn: "নতুন ব্যবসা বা শিল্প শুরুর জন্য ১০ লাখ থেকে ১ কোটি টাকা পর্যন্ত ব্যাংক ঋণ।",
+                    te: "కొత్త పరిశ్రమ స్థాపనకు ₹10 లక్షల నుండి ₹1 కోటి వరకు బ్యాంకు రుణం.",
+                    gu: "નવો ઉદ્યોગ શરૂ કરવા માટે ₹10 લાખથી ₹1 કરોડ સુધીની લોન સહાય.",
+                    kn: "ಹೊಸ ಉದ್ಯಮ ಸ್ಥಾಪನೆಗಾಗಿ ₹10 ಲಕ್ಷದಿಂದ ₹1 ಕೋಟಿವರೆಗೆ ಬ್ಯಾಂಕ್ ಸಾಲ ಸೌಲಭ್ಯ."
+                },
+                documents: [
+                    "Aadhaar & PAN Card",
+                    "Caste Certificate (for SC/ST founders)",
+                    "Project Report with Financial Feasibility",
+                    "Proof of Business Premises / Lease",
+                    "Bank Statements of past 6 months"
+                ],
+                portal: "https://www.standupmitra.in/",
+                authority: "Department of Financial Services, Ministry of Finance",
+                steps: [
+                    "Apply through Stand-Up Mitra portal online.",
+                    "Handholding support assigned by Lead District Manager (LDM).",
+                    "Sanction of loan by commercial bank within 30 days."
+                ]
+            }
+        ];
+
+        // GLOBAL APP STATE
+        let currentProfile = {
+            age: 25,
+            income_lakhs: 2.5,
+            education: "Graduate",
+            gender: "All",
+            category: "General",
+            isFarmer: false,
+            isArtisan: false,
+            isPWD: false,
+            isSingleGirl: false,
+            isEntrepreneur: false
+        };
+
+        let selectedForCompare = [];
+
+        // ==========================================
+        // INITIALIZATION & EVENT LISTENERS
+        // ==========================================
+        window.addEventListener('DOMContentLoaded', () => {
+            updateProfile();
+            setReportDate();
+        });
+
+        function setReportDate() {
+            const today = new Date();
+            document.getElementById('reportDate').innerText = today.toLocaleDateString('en-IN', {
+                year: 'numeric', month: 'short', day: 'numeric'
+            });
+        }
+
+        // ==========================================
+        // PROFILE CALCULATION & MATCH LOGIC
+        // ==========================================
+        function updateProfile() {
+            currentProfile.age = parseInt(document.getElementById('ageInput').value);
+            currentProfile.income_lakhs = parseFloat(document.getElementById('incomeInput').value);
+            currentProfile.education = document.getElementById('eduInput').value;
+            currentProfile.gender = document.getElementById('genderInput').value;
+            currentProfile.category = document.getElementById('categoryInput').value;
+
+            currentProfile.isFarmer = document.getElementById('condFarmer').checked;
+            currentProfile.isArtisan = document.getElementById('condArtisan').checked;
+            currentProfile.isPWD = document.getElementById('condPWD').checked;
+            currentProfile.isSingleGirl = document.getElementById('condSingleGirl').checked;
+            currentProfile.isEntrepreneur = document.getElementById('condEntrepreneur').checked;
+
+            // UI Display updates
+            document.getElementById('ageVal').innerText = currentProfile.age;
+            document.getElementById('incomeVal').innerText = `₹${currentProfile.income_lakhs.toFixed(2)} Lakhs`;
+
+            renderSchemes();
+        }
+
+        function resetProfileForm() {
+            document.getElementById('ageInput').value = 25;
+            document.getElementById('incomeInput').value = 2.5;
+            document.getElementById('eduInput').value = "Graduate";
+            document.getElementById('genderInput').value = "All";
+            document.getElementById('categoryInput').value = "General";
+
+            document.getElementById('condFarmer').checked = false;
+            document.getElementById('condArtisan').checked = false;
+            document.getElementById('condPWD').checked = false;
+            document.getElementById('condSingleGirl').checked = false;
+            document.getElementById('condEntrepreneur').checked = false;
+
+            updateProfile();
+        }
+
+        function evaluateSchemeEligibility(scheme) {
+            let score = 0;
+            let totalWeights = 5;
+            let matches = [];
+            let mismatches = [];
+
+            // 1. Age
+            if (currentProfile.age >= scheme.min_age && currentProfile.age <= scheme.max_age) {
+                score += 1;
+                matches.push(`Age ${currentProfile.age} is within required ${scheme.min_age}-${scheme.max_age} yrs`);
+            } else {
+                mismatches.push(`Requires age between ${scheme.min_age} and ${scheme.max_age} yrs (Current: ${currentProfile.age})`);
+            }
+
+            // 2. Income
+            if (currentProfile.income_lakhs <= scheme.max_income_lakhs) {
+                score += 1;
+                matches.push(`Annual income (₹${currentProfile.income_lakhs}L) is below upper limit ₹${scheme.max_income_lakhs}L`);
+            } else {
+                mismatches.push(`Annual income ₹${currentProfile.income_lakhs}L exceeds scheme threshold ₹${scheme.max_income_lakhs}L`);
+            }
+
+            // 3. Education
+            if (scheme.education.includes(currentProfile.education)) {
+                score += 1;
+                matches.push(`Education '${currentProfile.education}' matches eligibility target`);
+            } else {
+                mismatches.push(`Education level '${currentProfile.education}' not directly listed`);
+            }
+
+            // 4. Gender
+            if (scheme.gender.includes("All") || scheme.gender.includes(currentProfile.gender)) {
+                score += 1;
+                matches.push(`Gender criteria satisfied (${currentProfile.gender})`);
+            } else {
+                mismatches.push(`Scheme reserved specifically for: ${scheme.gender.join(', ')}`);
+            }
+
+            // 5. Special Conditions / Category
+            let categoryMatch = scheme.categories.includes(currentProfile.category);
+            let conditionMatch = true;
+
+            if (scheme.special_conditions.length > 0) {
+                conditionMatch = false;
+                if (scheme.special_conditions.includes("Farmer") && currentProfile.isFarmer) conditionMatch = true;
+                if (scheme.special_conditions.includes("Artisan") && currentProfile.isArtisan) conditionMatch = true;
+                if (scheme.special_conditions.includes("PWD") && currentProfile.isPWD) conditionMatch = true;
+                if (scheme.special_conditions.includes("Single Girl") && currentProfile.isSingleGirl) conditionMatch = true;
+                if (scheme.special_conditions.includes("Entrepreneur") && currentProfile.isEntrepreneur) conditionMatch = true;
+            }
+
+            if (categoryMatch && conditionMatch) {
+                score += 1;
+                matches.push(`Social category & special occupation status matched`);
+            } else if (categoryMatch || conditionMatch) {
+                score += 0.5;
+                matches.push(`Partial match on social category / special condition`);
+            } else {
+                mismatches.push(`Target group requirements (Category/Occupation) not met`);
+            }
+
+            let percentage = Math.round((score / totalWeights) * 100);
+            let status = "Ineligible";
+            let badgeClass = "st-badge-ineligible";
+
+            if (percentage >= 80) {
+                status = "Eligible";
+                badgeClass = "st-badge-eligible";
+            } else if (percentage >= 50) {
+                status = "Potentially Eligible";
+                badgeClass = "st-badge-partial";
+            }
+
+            return { percentage, status, badgeClass, matches, mismatches };
+        }
+
+        // ==========================================
+        // RENDER FUNCTIONS (STREAMLIT STYLE)
+        // ==========================================
+        function renderSchemes() {
+            const container = document.getElementById('schemesContainer');
+            const searchQ = document.getElementById('searchInput').value.toLowerCase();
+            const sectorF = document.getElementById('sectorFilter').value;
+            const matchF = document.getElementById('matchFilter').value;
+            const lang = document.getElementById('languageSelect').value;
+
+            container.innerHTML = '';
+
+            let totalEligible = 0;
+            let totalPartial = 0;
+            let docAggregator = new Set();
+
+            let processedList = SCHEMES_DATABASE.map(scheme => {
+                const evalRes = evaluateSchemeEligibility(scheme);
+                return { ...scheme, eval: evalRes };
+            });
+
+            // Sort by match score descending
+            processedList.sort((a, b) => b.eval.percentage - a.eval.percentage);
+
+            let visibleCount = 0;
+
+            processedList.forEach(scheme => {
+                const e = scheme.eval;
+                if (e.status === "Eligible") {
+                    totalEligible++;
+                    scheme.documents.forEach(d => docAggregator.add(d));
+                }
+                if (e.status === "Potentially Eligible") {
+                    totalPartial++;
+                }
+
+                // Filter checks
+                if (sectorF !== "All" && scheme.category !== sectorF) return;
+                if (matchF === "Eligible" && e.status !== "Eligible") return;
+                if (matchF === "Partial" && e.percentage < 50) return;
+                
+                if (searchQ) {
+                    const haystack = (scheme.name + " " + scheme.overview + " " + scheme.category + " " + (scheme.benefits[lang] || "")).toLowerCase();
+                    if (!haystack.includes(searchQ)) return;
+                }
+
+                visibleCount++;
+
+                // Selected benefit translation
+                const benefitText = scheme.benefits[lang] || scheme.benefits['en'];
+
+                const isCheckedForCompare = selectedForCompare.includes(scheme.id);
+
+                const cardHTML = `
+                    <div class="st-card p-5 space-y-4">
+                        <!-- Top Row Header -->
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                            <div>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200 uppercase">${scheme.category}</span>
+                                    <span class="st-badge ${e.badgeClass}">
+                                        <i class="fa-solid ${e.status === 'Eligible' ? 'fa-circle-check' : (e.status === 'Potentially Eligible' ? 'fa-triangle-exclamation' : 'fa-circle-xmark')}"></i>
+                                        ${e.percentage}% Match (${e.status})
+                                    </span>
+                                </div>
+                                <h3 class="text-base font-bold text-slate-900 mt-1">${scheme.name}</h3>
+                                <p class="text-xs text-slate-500">${scheme.authority}</p>
+                            </div>
+
+                            <div class="flex items-center gap-2 no-print">
+                                <label class="flex items-center space-x-1.5 text-xs font-semibold text-slate-600 bg-slate-50 hover:bg-slate-100 px-3 py-1.5 rounded border border-slate-200 cursor-pointer">
+                                    <input type="checkbox" onchange="toggleCompare('${scheme.id}')" ${isCheckedForCompare ? 'checked' : ''} class="rounded text-stRed focus:ring-stRed">
+                                    <span>Compare</span>
+                                </label>
+                                <a href="${scheme.portal}" target="_blank" rel="noopener" class="bg-stRed hover:bg-stRed-hover text-white text-xs font-semibold px-3 py-1.5 rounded transition flex items-center gap-1">
+                                    Apply Portal <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Regional Benefit Explanation Box -->
+                        <div class="bg-red-50/60 border border-red-100 p-3 rounded-lg">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-stRed block mb-0.5">
+                                Key Benefit Overview (${document.getElementById('languageSelect').options[document.getElementById('languageSelect').selectedIndex].text})
+                            </span>
+                            <p class="text-xs font-semibold text-slate-800 leading-relaxed">${benefitText}</p>
+                        </div>
+
+                        <!-- Accordion Details -->
+                        <details class="group text-xs text-slate-600">
+                            <summary class="cursor-pointer font-semibold text-stRed hover:underline flex items-center gap-1 py-1">
+                                <span>View Detailed Official Eligibility & Application Guidelines</span>
+                                <i class="fa-solid fa-chevron-down group-open:rotate-180 transition-transform"></i>
+                            </summary>
+                            
+                            <div class="mt-3 space-y-3 pt-3 border-t border-slate-100">
+                                <div>
+                                    <strong class="text-slate-800">Scheme Overview:</strong>
+                                    <p class="mt-0.5 leading-relaxed">${scheme.overview}</p>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 bg-slate-50 p-3 rounded border border-slate-200">
+                                    <div>
+                                        <strong class="text-emerald-700 text-[11px] uppercase tracking-wider block mb-1">
+                                            <i class="fa-solid fa-circle-check"></i> Criteria Matched (${e.matches.length})
+                                        </strong>
+                                        <ul class="list-disc list-inside space-y-0.5 text-[11px] text-slate-700">
+                                            ${e.matches.map(m => `<li>${m}</li>`).join('')}
+                                        </ul>
+                                    </div>
+                                    <div>
+                                        <strong class="text-rose-700 text-[11px] uppercase tracking-wider block mb-1">
+                                            <i class="fa-solid fa-circle-xmark"></i> Potential Gaps / Criteria (${e.mismatches.length})
+                                        </strong>
+                                        <ul class="list-disc list-inside space-y-0.5 text-[11px] text-slate-700">
+                                            ${e.mismatches.map(m => `<li>${m}</li>`).join('')}
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <!-- Mandatory Documents -->
+                                <div>
+                                    <strong class="text-slate-800 block mb-1">Mandatory Documents Checklist:</strong>
+                                    <div class="flex flex-wrap gap-1.5">
+                                        ${scheme.documents.map(doc => `<span class="bg-slate-100 border border-slate-200 px-2 py-0.5 rounded text-[11px] text-slate-700 font-medium"><i class="fa-solid fa-file-lines text-slate-400 mr-1"></i>${doc}</span>`).join('')}
+                                    </div>
+                                </div>
+
+                                <!-- Step by Step Application Guide -->
+                                <div>
+                                    <strong class="text-slate-800 block mb-1">Step-by-Step Application Process:</strong>
+                                    <ol class="list-decimal list-inside space-y-1 text-slate-700 text-[11px]">
+                                        ${scheme.steps.map(s => `<li>${s}</li>`).join('')}
+                                    </ol>
+                                </div>
+                            </div>
+                        </details>
+                    </div>
+                `;
+
+                container.insertAdjacentHTML('beforeend', cardHTML);
+            });
+
+            if (visibleCount === 0) {
+                container.innerHTML = `
+                    <div class="st-card p-8 text-center space-y-2">
+                        <i class="fa-solid fa-folder-open text-3xl text-slate-300"></i>
+                        <h4 class="text-sm font-bold text-slate-700">No matching schemes found</h4>
+                        <p class="text-xs text-slate-500">Try adjusting your sidebar demographic inputs or search filter query.</p>
+                    </div>
+                `;
+            }
+
+            // Update Metrics Top Bar
+            document.getElementById('metricTotal').innerText = SCHEMES_DATABASE.length;
+            document.getElementById('metricEligible').innerText = totalEligible;
+            document.getElementById('metricPartial').innerText = totalPartial;
+            document.getElementById('metricDocs').innerText = docAggregator.size;
+
+            // Render Sub-Views
+            renderComparisonMatrix();
+            renderChecklist(Array.from(docAggregator));
+            renderReport(processedList.filter(s => s.eval.status === "Eligible"), Array.from(docAggregator));
+        }
+
+        // ==========================================
+        // SIDE-BY-SIDE COMPARISON LOGIC
+        // ==========================================
+        function toggleCompare(schemeId) {
+            if (selectedForCompare.includes(schemeId)) {
+                selectedForCompare = selectedForCompare.filter(id => id !== schemeId);
+            } else {
+                if (selectedForCompare.length >= 3) {
+                    alert("You can select up to 3 schemes for side-by-side comparison.");
+                    return;
+                }
+                selectedForCompare.push(schemeId);
+            }
+            document.getElementById('compareCount').innerText = selectedForCompare.length;
+            renderSchemes();
+        }
+
+        function clearComparison() {
+            selectedForCompare = [];
+            document.getElementById('compareCount').innerText = 0;
+            renderSchemes();
+        }
+
+        function renderComparisonMatrix() {
+            const container = document.getElementById('compareMatrixContainer');
+            if (selectedForCompare.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-slate-400 text-xs">
+                        <i class="fa-solid fa-code-compare text-2xl mb-2"></i>
+                        <p>No schemes selected. Check "Compare" box on scheme cards to see them side-by-side.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const schemesToCompare = SCHEMES_DATABASE.filter(s => selectedForCompare.includes(s.id)).map(s => {
+                return { ...s, eval: evaluateSchemeEligibility(s) };
+            });
+
+            let tableHTML = `
+                <table class="w-full text-xs text-left border-collapse min-w-[600px]">
+                    <thead>
+                        <tr class="border-b border-slate-200 bg-slate-50">
+                            <th class="p-3 font-bold text-slate-700 w-1/4">Feature / Parameter</th>
+                            ${schemesToCompare.map(s => `
+                                <th class="p-3 font-bold text-slate-900 w-1/4 border-l border-slate-200">
+                                    ${s.name}
+                                    <span class="block st-badge ${s.eval.badgeClass} mt-1">${s.eval.percentage}% Match</span>
+                                </th>
+                            `).join('')}
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200">
+                        <tr>
+                            <td class="p-3 font-semibold text-slate-600">Category</td>
+                            ${schemesToCompare.map(s => `<td class="p-3 border-l border-slate-200 font-medium">${s.category}</td>`).join('')}
+                        </tr>
+                        <tr>
+                            <td class="p-3 font-semibold text-slate-600">Eligible Age Range</td>
+                            ${schemesToCompare.map(s => `<td class="p-3 border-l border-slate-200">${s.min_age} - ${s.max_age} Years</td>`).join('')}
+                        </tr>
+                        <tr>
+                            <td class="p-3 font-semibold text-slate-600">Max Family Income</td>
+                            ${schemesToCompare.map(s => `<td class="p-3 border-l border-slate-200">₹${s.max_income_lakhs === 999 ? 'No upper limit' : s.max_income_lakhs + ' Lakhs'}</td>`).join('')}
+                        </tr>
+                        <tr>
+                            <td class="p-3 font-semibold text-slate-600">Primary Benefits</td>
+                            ${schemesToCompare.map(s => `<td class="p-3 border-l border-slate-200 leading-relaxed">${s.benefits['en']}</td>`).join('')}
+                        </tr>
+                        <tr>
+                            <td class="p-3 font-semibold text-slate-600">Key Required Docs</td>
+                            ${schemesToCompare.map(s => `<td class="p-3 border-l border-slate-200">${s.documents.join(', ')}</td>`).join('')}
+                        </tr>
+                        <tr>
+                            <td class="p-3 font-semibold text-slate-600">Action</td>
+                            ${schemesToCompare.map(s => `<td class="p-3 border-l border-slate-200"><a href="${s.portal}" target="_blank" class="text-stRed hover:underline font-bold">Apply Official Portal &rarr;</a></td>`).join('')}
+                        </tr>
+                    </tbody>
+                </table>
+            `;
+
+            container.innerHTML = tableHTML;
+        }
+
+        // ==========================================
+        // MASTER DOCUMENT CHECKLIST LOGIC
+        // ==========================================
+        function renderChecklist(docsArray) {
+            const container = document.getElementById('checklistContainer');
+            if (docsArray.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-6 text-slate-400 text-xs">
+                        <p>No eligible schemes currently matched to generate document checklist.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = docsArray.map((doc, idx) => `
+                <div class="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-md">
+                    <label class="flex items-center space-x-3 text-xs font-semibold text-slate-800 cursor-pointer">
+                        <input type="checkbox" class="rounded text-stRed focus:ring-stRed h-4 w-4">
+                        <span>${doc}</span>
+                    </label>
+                    <span class="text-[10px] text-slate-400 font-mono">Mandatory Document</span>
+                </div>
+            `).join('');
+        }
+
+        function copyDocumentChecklist() {
+            const docs = Array.from(document.querySelectorAll('#checklistContainer label span')).map(el => el.innerText);
+            if (docs.length === 0) return;
+            const textToCopy = "OFFICIAL APPLICATION DOCUMENTS CHECKLIST:\n" + docs.map(d => `- [ ] ${d}`).join('\n');
+            
+            // Fallback execCommand for iframe safety
+            const ta = document.createElement('textarea');
+            ta.value = textToCopy;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+
+            alert("Document checklist copied to clipboard!");
+        }
+
+        // ==========================================
+        // PRINTABLE REPORT GENERATOR
+        // ==========================================
+        function renderReport(eligibleSchemes, docsArray) {
+            // Citizen Summary
+            const profContainer = document.getElementById('reportProfileSummary');
+            profContainer.innerHTML = `
+                <div><span class="text-slate-400">Age:</span> <strong>${currentProfile.age} Yrs</strong></div>
+                <div><span class="text-slate-400">Annual Income:</span> <strong>₹${currentProfile.income_lakhs} Lakhs</strong></div>
+                <div><span class="text-slate-400">Education:</span> <strong>${currentProfile.education}</strong></div>
+                <div><span class="text-slate-400">Social Category:</span> <strong>${currentProfile.category}</strong></div>
+            `;
+
+            // Schemes Table
+            const schemeContainer = document.getElementById('reportSchemesTable');
+            if (eligibleSchemes.length === 0) {
+                schemeContainer.innerHTML = `<p class="text-xs text-slate-500 italic">No fully eligible schemes match current profile parameters.</p>`;
+            } else {
+                schemeContainer.innerHTML = `
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-slate-100 border-b border-slate-300">
+                                <th class="p-2 font-bold text-slate-800">Scheme Name</th>
+                                <th class="p-2 font-bold text-slate-800">Ministry / Authority</th>
+                                <th class="p-2 font-bold text-slate-800">Core Monetary Benefit</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200">
+                            ${eligibleSchemes.map(s => `
+                                <tr>
+                                    <td class="p-2 font-semibold text-slate-900">${s.name}</td>
+                                    <td class="p-2 text-slate-600">${s.authority}</td>
+                                    <td class="p-2 text-slate-800">${s.benefits['en']}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            }
+
+            // Docs List
+            const docsContainer = document.getElementById('reportDocsList');
+            if (docsArray.length === 0) {
+                docsContainer.innerHTML = `<p class="text-xs text-slate-500 italic">No document checklist required.</p>`;
+            } else {
+                docsContainer.innerHTML = docsArray.map(d => `
+                    <div class="p-1.5 border border-slate-200 rounded bg-slate-50 font-medium">
+                        [  ] ${d}
+                    </div>
+                `).join('');
+            }
+        }
+
+        // ==========================================
+        // TAB NAVIGATION LOGIC
+        // ==========================================
+        function switchTab(tabName) {
+            const tabs = ['schemes', 'compare', 'checklist', 'report'];
+            tabs.forEach(t => {
+                const btn = document.getElementById(`tabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
+                const content = document.getElementById(`tabContent${t.charAt(0).toUpperCase() + t.slice(1)}`);
+
+                if (t === tabName) {
+                    btn.classList.add('border-stRed', 'text-stRed');
+                    btn.classList.remove('border-transparent', 'text-slate-500');
+                    content.classList.remove('hidden');
+                } else {
+                    btn.classList.remove('border-stRed', 'text-stRed');
+                    btn.classList.add('border-transparent', 'text-slate-500');
+                    content.classList.add('hidden');
+                }
+            });
+        }
+
+        // ==========================================
+        // WIZARD MODAL LOGIC
+        // ==========================================
+        let wizardGoal = '';
+
+        function openWizardModal() {
+            document.getElementById('wizardModal').classList.remove('hidden');
+            document.getElementById('wizardStep1').classList.remove('hidden');
+            document.getElementById('wizardStep2').classList.add('hidden');
+            document.getElementById('wizardTitle').innerText = "Step 1: Choose Your Primary Focus";
+            document.getElementById('wizardStepIndicator').innerText = "Step 1 of 2";
+        }
+
+        function closeWizardModal() {
+            document.getElementById('wizardModal').classList.add('hidden');
+        }
+
+        function wizardSelectGoal(goal) {
+            wizardGoal = goal;
+            document.getElementById('wizardStep1').classList.add('hidden');
+            document.getElementById('wizardStep2').classList.remove('hidden');
+            document.getElementById('wizardTitle').innerText = "Step 2: Income Bracket";
+            document.getElementById('wizardStepIndicator').innerText = "Step 2 of 2";
+        }
+
+        function wizardSelectIncome(incomeLakhs) {
+            document.getElementById('incomeInput').value = incomeLakhs;
+
+            // Reset flags
+            document.getElementById('condEntrepreneur').checked = false;
+            document.getElementById('condFarmer').checked = false;
+
+            if (wizardGoal === 'Entrepreneurship') {
+                document.getElementById('sectorFilter').value = 'Grants & Entrepreneurship';
+                document.getElementById('condEntrepreneur').checked = true;
+            } else if (wizardGoal === 'Education') {
+                document.getElementById('sectorFilter').value = 'Education & Scholarships';
+            } else if (wizardGoal === 'Agriculture') {
+                document.getElementById('sectorFilter').value = 'Farmers & Agriculture';
+                document.getElementById('condFarmer').checked = true;
+            } else if (wizardGoal === 'Social') {
+                document.getElementById('sectorFilter').value = 'Social Security';
+            }
+
+            closeWizardModal();
+            updateProfile();
+            switchTab('schemes');
+        }
+    </script>
+</body>
+</html>
